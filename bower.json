@@ -1,6 +1,6 @@
 {
   "name": "purescript-vom",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "homepage": "https://github.com/oreshinya/purescript-vom",
   "authors": [
@@ -28,9 +28,9 @@
     "purescript-prelude": "^2.5.0",
     "purescript-console": "^2.0.0",
     "purescript-eff": "^2.0.0",
-    "purescript-tuples": "^4.0.0",
+    "purescript-tuples": "^3.2.0",
     "purescript-arrays": "^3.2.1",
-    "purescript-unsafe-coerce": "^3.0.0",
+    "purescript-unsafe-coerce": "^2.0.0",
     "purescript-foldable-traversable": "^2.2.0",
     "purescript-nullable": "^2.0.0",
     "purescript-maybe": "^2.1.1",
