@@ -1,0 +1,42 @@
+{
+  "name": "purescript-vom",
+  "version": "0.1.0",
+  "license": "MIT",
+  "homepage": "https://github.com/oreshinya/purescript-vom",
+  "authors": [
+    "Shinya Takahashi <s.takahashi313@gmail.com>"
+  ],
+  "description": "purescript virtual dom",
+  "keywords": [
+    "purescript",
+    "virtual-dom"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/oreshinya/purescript-vom.git"
+  },
+  "moduleType": [
+    "node"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-prelude": "^2.5.0",
+    "purescript-console": "^2.0.0",
+    "purescript-eff": "^2.0.0",
+    "purescript-tuples": "^4.0.0",
+    "purescript-arrays": "^3.2.1",
+    "purescript-unsafe-coerce": "^3.0.0",
+    "purescript-foldable-traversable": "^2.2.0",
+    "purescript-nullable": "^2.0.0",
+    "purescript-maybe": "^2.1.1",
+    "purescript-dom": "^3.7.0"
+  },
+  "devDependencies": {
+    "purescript-psci-support": "^2.0.0"
+  }
+}

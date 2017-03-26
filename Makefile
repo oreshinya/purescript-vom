@@ -1,0 +1,2 @@
+build:
+	pulp build
