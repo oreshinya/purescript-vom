@@ -4,6 +4,7 @@
 [![Build status](https://travis-ci.org/oreshinya/purescript-vom.svg?branch=master)](https://travis-ci.org/oreshinya/purescript-vom)
 
 PureScript virtual dom implementation.
+See [example](https://github.com/oreshinya/purescript-cherry/blob/master/example/Main.purs).
 
 ## Installation
 
