@@ -69,17 +69,17 @@ h tag props children = Element
 
 
 t :: forall e. String -> VNode e
-t text = Text text
+t = Text
 
 
 
 attr :: forall e. String -> VProp e
-attr s = Attribute s
+attr = Attribute
 
 
 
 handler :: forall e. (Event -> Eff e Unit) -> VProp e
-handler f = Handler f
+handler = Handler
 
 
 

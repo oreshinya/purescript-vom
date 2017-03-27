@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "purescript-prelude": "^2.5.0",
-    "purescript-console": "^2.0.0",
     "purescript-eff": "^2.0.0",
     "purescript-tuples": "^3.2.0",
     "purescript-arrays": "^3.2.1",
