@@ -5,6 +5,8 @@ module VOM
   , t
   , attr
   , handler
+  , stringTo
+  , noneTo
   , style
   , patch
   ) where
@@ -17,9 +19,11 @@ import Data.Maybe (Maybe(..), maybe)
 import Data.Nullable (Nullable, toMaybe, toNullable)
 import Data.Tuple (Tuple(..), fst, lookup, curry)
 import DOM (DOM)
+import DOM.Event.Event (target)
 import DOM.Event.EventTarget (EventListener, eventListener)
 import DOM.Event.Types (Event)
 import DOM.HTML (window)
+import DOM.HTML.HTMLInputElement (value)
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.Document (createTextNode, createElement, createElementNS)
@@ -80,6 +84,16 @@ attr = Attribute
 
 handler :: forall e. (Event -> Eff e Unit) -> VProp e
 handler = Handler
+
+
+
+stringTo :: forall e. (String -> Eff (dom :: DOM | e) Unit) -> VProp (dom :: DOM | e)
+stringTo f = handler (\e -> (value $ unsafeCoerce $ target e) >>= f)
+
+
+
+noneTo :: forall e. Eff (dom :: DOM | e) Unit -> VProp (dom :: DOM | e)
+noneTo f = handler (\_ -> f)
 
 
 
