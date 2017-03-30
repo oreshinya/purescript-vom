@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "purescript-vom",
+  "scripts": {
+    "clean": "rm -rf output",
+    "compile": "psc src/VOM.purs 'bower_components/purescript-*/src/**/*.purs'"
+  },
+  "devDependencies": {
+    "purescript": "0.10.7"
+  }
+}
