@@ -5,7 +5,9 @@
     "clean": "rm -rf output",
     "bower": "bower install",
     "compile": "pulp build",
-    "psci": "pulp psci"
+    "psci": "pulp psci",
+    "pulp:version": "pulp version",
+    "pulp:publish": "pulp publish"
   },
   "devDependencies": {
     "bower": "^1.8.0",
