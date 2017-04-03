@@ -3,9 +3,13 @@
   "name": "purescript-vom",
   "scripts": {
     "clean": "rm -rf output",
-    "compile": "psc src/VOM.purs 'bower_components/purescript-*/src/**/*.purs'"
+    "bower": "bower install",
+    "compile": "pulp build",
+    "psci": "pulp psci"
   },
   "devDependencies": {
+    "bower": "^1.8.0",
+    "pulp": "^10.0.4",
     "purescript": "0.10.7"
   }
 }
