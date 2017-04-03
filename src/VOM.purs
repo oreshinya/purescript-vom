@@ -3,12 +3,15 @@ module VOM
   , VNode
   , h
   , t
-  , attr
+  , attribute
+  , style
   , handler
   , stringTo
   , noneTo
-  , style
   , patch
+  , (:=)
+  , (:|)
+  , (~>)
   ) where
 
 import Prelude
@@ -76,30 +79,37 @@ t :: forall e. String -> VNode e
 t = Text
 
 
+attribute :: forall e. String -> String -> Tuple String (VProp e)
+attribute key value' = Tuple key (Attribute value')
 
-attr :: forall e. String -> VProp e
-attr = Attribute
-
-
-
-handler :: forall e. (Event -> Eff e Unit) -> VProp e
-handler = Handler
+infixr 1 attribute as :=
 
 
 
-stringTo :: forall e. (String -> Eff (dom :: DOM | e) Unit) -> VProp (dom :: DOM | e)
-stringTo f = handler (\e -> (value $ unsafeCoerce $ target e) >>= f)
+style :: forall e. String -> Array (Tuple String String) -> Tuple String (VProp e)
+style key styles = attribute key value'
+  where
+    joint acc (Tuple k v) = acc <> k <> ":" <> v <> ";"
+    value' = foldl joint "" styles
+
+infixr 1 style as :|
 
 
 
-noneTo :: forall e. Eff (dom :: DOM | e) Unit -> VProp (dom :: DOM | e)
-noneTo f = handler (\_ -> f)
+handler :: forall e. String -> (Event -> Eff e Unit) -> Tuple String (VProp e)
+handler key fn = Tuple key (Handler fn)
+
+infixr 1 handler as ~>
 
 
 
-style :: forall e. Array (Tuple String String) -> VProp e
-style = attr <<< foldl joint ""
-  where joint acc (Tuple k v) = acc <> k <> ":" <> v <> ";"
+stringTo :: forall e. (String -> Eff (dom :: DOM | e) Unit) -> (Event -> Eff (dom :: DOM | e) Unit)
+stringTo fn = (\e -> (value $ unsafeCoerce $ target e) >>= fn)
+
+
+
+noneTo :: forall e. Eff (dom :: DOM | e) Unit -> (Event -> Eff (dom :: DOM | e) Unit)
+noneTo fn = \_ -> fn
 
 
 
