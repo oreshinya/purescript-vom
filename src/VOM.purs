@@ -19,7 +19,6 @@ import Control.Monad.Eff (Eff)
 import Data.Array (union, (!!), (..), length)
 import Data.Foldable (foldl, for_, traverse_)
 import Data.Maybe (Maybe(..), maybe)
-import Data.Nullable (Nullable, toMaybe, toNullable)
 import Data.Tuple (Tuple(..), fst, lookup, curry)
 import DOM (DOM)
 import DOM.Event.Event (target)
@@ -119,11 +118,11 @@ doc = window >>= document >>= htmlDocumentToDocument >>> pure
 
 
 childAt :: forall e. Int -> Node -> Eff (dom :: DOM | e) (Maybe Node)
-childAt index node = childNodes node >>= item index >>= toMaybe >>> pure
+childAt index node = childNodes node >>= item index
 
 
-svgNameSpace :: Nullable String
-svgNameSpace = toNullable $ Just "http://www.w3.org/2000/svg"
+svgNameSpace :: Maybe String
+svgNameSpace = Just "http://www.w3.org/2000/svg"
 
 
 
