@@ -1,16 +1,16 @@
 "use strict";
 
-exports["setAttribute'"] = function(name) {
-  return function(listener) {
+exports.setForeign = function(name) {
+  return function(foreign) {
     return function(element) {
       return function() {
-        element[name.toLowerCase()] = listener;
-      };
-    };
-  };
-};
+        element[name.toLowerCase()] = foreign;
+      }
+    }
+  }
+}
 
-exports["removeAttribute'"] = function(name) {
+exports.removeForeign = function(name) {
   return function(element) {
     return function() {
       element[name.toLowerCase()] = null;

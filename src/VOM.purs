@@ -15,24 +15,27 @@ module VOM
   ) where
 
 import Prelude
+
 import Control.Monad.Eff (Eff)
-import Data.Array (union, (!!), (..), length)
-import Data.Foldable (foldl, for_, traverse_)
-import Data.Maybe (Maybe(..), maybe)
-import Data.Tuple (Tuple(..), fst, lookup, curry)
+import Control.Monad.Eff.Exception (EXCEPTION, catchException)
 import DOM (DOM)
 import DOM.Event.Event (target)
-import DOM.Event.EventTarget (EventListener, eventListener)
+import DOM.Event.EventTarget (eventListener)
 import DOM.Event.Types (Event)
 import DOM.HTML (window)
 import DOM.HTML.HTMLInputElement (value)
 import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.Document (createTextNode, createElement, createElementNS)
-import DOM.Node.Element (setAttribute, removeAttribute)
+import DOM.Node.Element (removeAttribute, setAttribute)
 import DOM.Node.Node (childNodes, appendChild, removeChild, replaceChild, setTextContent)
 import DOM.Node.NodeList (item)
 import DOM.Node.Types (Node, Document, Element, textToNode, elementToNode)
+import Data.Array (union, (!!), (..), length)
+import Data.Foldable (foldl, for_, traverse_)
+import Data.Foreign (Foreign, toForeign)
+import Data.Maybe (Maybe(..), maybe)
+import Data.Tuple (Tuple(..), fst, lookup, curry)
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -51,14 +54,9 @@ data VNode e
 
 
 
-foreign import setAttribute' :: forall e. String ->
-                                EventListener (dom :: DOM | e) ->
-                                Element ->
-                                Eff (dom :: DOM | e) Unit
+foreign import setForeign :: forall e. String -> Foreign -> Element -> Eff (dom :: DOM, exception :: EXCEPTION | e) Unit
 
-foreign import removeAttribute' :: forall e. String ->
-                                  Element ->
-                                  Eff (dom :: DOM | e) Unit
+foreign import removeForeign :: forall e. String -> Element -> Eff (dom :: DOM, exception :: EXCEPTION | e) Unit
 
 
 
@@ -138,16 +136,17 @@ setProp :: forall e. Element ->
            Eff (dom :: DOM | e) Unit
 setProp el (Tuple k v) =
   case v of
-    (Attribute val) ->
+    (Attribute val) -> do
+      catchException (const $ pure unit) $ setForeign k (toForeign val) el
       setAttribute k val el
     (Handler val) ->
-      setAttribute' k (eventListener val) el
+      catchException (const $ pure unit) $ setForeign k (toForeign $ eventListener val) el
 
 
 
 removeProp :: forall e. Element -> String -> Eff (dom :: DOM | e) Unit
 removeProp el k = do
-  removeAttribute' k el
+  catchException (const $ pure unit) $ removeForeign k el
   removeAttribute k el
 
 
