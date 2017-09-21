@@ -60,10 +60,11 @@ foreign import removeForeign :: forall e. String -> Element -> Eff (dom :: DOM, 
 
 
 
-h :: forall e. String ->
-     Array (Tuple String (VProp e)) ->
-     Array (VNode e) ->
-     VNode e
+h :: forall e
+   . String
+  -> Array (Tuple String (VProp e))
+  -> Array (VNode e)
+  -> VNode e
 h tag props children = Element
   { tag
   , props
@@ -131,9 +132,11 @@ changed _ _ = true
 
 
 
-setProp :: forall e. Element ->
-           Tuple String (VProp (dom :: DOM | e)) ->
-           Eff (dom :: DOM | e) Unit
+setProp
+  :: forall e
+   . Element
+  -> Tuple String (VProp (dom :: DOM | e))
+  -> Eff (dom :: DOM | e) Unit
 setProp el (Tuple k v) =
   case v of
     (Attribute val) -> do
@@ -171,10 +174,12 @@ createNode (Element { tag, props, children }) = do
 
 
 
-updateProps :: forall e. Array (Tuple String (VProp (dom :: DOM | e))) ->
-              Array (Tuple String (VProp (dom :: DOM | e))) ->
-              Element ->
-              Eff (dom :: DOM | e) Unit
+updateProps
+  :: forall e
+   . Array (Tuple String (VProp (dom :: DOM | e)))
+  -> Array (Tuple String (VProp (dom :: DOM | e)))
+  -> Element
+  -> Eff (dom :: DOM | e) Unit
 updateProps prevs nexts element =
   for_ keys update
   where
@@ -187,10 +192,12 @@ updateProps prevs nexts element =
 
 
 
-patch :: forall e. Maybe (VNode (dom :: DOM | e)) ->
-         Maybe (VNode (dom :: DOM | e)) ->
-         Node ->
-         Eff (dom :: DOM | e) Unit
+patch
+  :: forall e
+   . Maybe (VNode (dom :: DOM | e))
+  -> Maybe (VNode (dom :: DOM | e))
+  -> Node
+  -> Eff (dom :: DOM | e) Unit
 patch old new target = patch' old new target 0
   where
     patch' Nothing Nothing _ _ = pure unit
