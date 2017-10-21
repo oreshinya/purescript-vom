@@ -31,7 +31,7 @@ import DOM.Node.Element (removeAttribute, setAttribute)
 import DOM.Node.Node (childNodes, appendChild, removeChild, replaceChild, setTextContent)
 import DOM.Node.NodeList (item)
 import DOM.Node.Types (Node, Document, Element, textToNode, elementToNode)
-import Data.Array (union, (!!), (..), length)
+import Data.Array (union, (:), (!!), (..), length, mapWithIndex)
 import Data.Foldable (foldl, for_, traverse_)
 import Data.Foreign (Foreign, toForeign)
 import Data.Maybe (Maybe(..), maybe)
@@ -65,11 +65,16 @@ h :: forall e
   -> Array (Tuple String (VProp e))
   -> Array (VNode e)
   -> VNode e
-h tag props children = Element
-  { tag
-  , props
-  , children
-  }
+h tag props children = Element { tag, props, children: children' }
+  where
+    setKey i (Text Nothing s) = Text (Just $ show i) s
+    setKey i (Element el) =
+      case lookup "key" el.props of
+        Just _ -> Element el
+        Nothing -> Element { tag: el.tag, children: el.children, props: ("key" := show i) : el.props }
+    setKey _ vnode = vnode
+
+    children' = mapWithIndex setKey children
 
 
 
