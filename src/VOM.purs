@@ -139,10 +139,10 @@ setProp
   -> Eff (dom :: DOM | e) Unit
 setProp el (Tuple k v) =
   case v of
-    (Attribute val) -> do
+    Attribute val -> do
       catchException (const $ pure unit) $ setForeign k (toForeign val) el
       setAttribute k val el
-    (Handler val) ->
+    Handler val ->
       catchException (const $ pure unit) $ setForeign k (toForeign $ eventListener val) el
 
 
