@@ -34,8 +34,9 @@ import DOM.Node.Types (Node, Document, Element, textToNode, elementToNode)
 import Data.Array (union, (:), (!!), (..), length, mapWithIndex)
 import Data.Foldable (foldl, for_, traverse_)
 import Data.Foreign (Foreign, toForeign)
-import Data.Maybe (Maybe(..), maybe)
+import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..), fst, lookup, curry)
+import KeyBasedDiff (class HasKey)
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -256,3 +257,12 @@ patch old new target = patch' old new target 0
         nextLength = length next.children
 
     startWalk _ _ _ = pure unit
+
+
+
+instance hasKeyVNode :: HasKey (VNode e) where
+  getKey (Text key _) = fromMaybe "" key
+  getKey (Element el) =
+    case lookup "key" el.props of
+      (Just (Attribute key)) -> key
+      _ -> ""
