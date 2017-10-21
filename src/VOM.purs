@@ -137,6 +137,7 @@ setProp
    . Element
   -> Tuple String (VProp (dom :: DOM | e))
   -> Eff (dom :: DOM | e) Unit
+setProp _ (Tuple "key" v) = pure unit
 setProp el (Tuple k v) =
   case v of
     Attribute val -> do
@@ -148,6 +149,7 @@ setProp el (Tuple k v) =
 
 
 removeProp :: forall e. Element -> String -> Eff (dom :: DOM | e) Unit
+removeProp _ "key" = pure unit
 removeProp el k = do
   catchException (const $ pure unit) $ removeForeign k el
   removeAttribute k el
