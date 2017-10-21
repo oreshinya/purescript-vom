@@ -50,7 +50,7 @@ data VNode e
     , props :: Array (Tuple String (VProp e))
     , children :: Array (VNode e)
     }
-  | Text String
+  | Text (Maybe String) String
 
 
 
@@ -74,7 +74,7 @@ h tag props children = Element
 
 
 t :: forall e. String -> VNode e
-t = Text
+t = Text Nothing
 
 
 attribute :: forall e. String -> String -> Tuple String (VProp e)
@@ -127,7 +127,7 @@ svgNameSpace = Just "http://www.w3.org/2000/svg"
 
 changed :: forall e. VNode e -> VNode e -> Boolean
 changed (Element prev) (Element next) = prev.tag /= next.tag
-changed (Text prev) (Text next) = prev /= next
+changed (Text _ prev) (Text _ next) = prev /= next
 changed _ _ = true
 
 
@@ -155,7 +155,7 @@ removeProp el k = do
 
 
 createNode :: forall e. VNode (dom :: DOM | e) -> Eff (dom :: DOM | e) Node
-createNode (Text text) =
+createNode (Text _ text) =
   doc >>= createTextNode text >>= textToNode >>> pure
 
 createNode (Element { tag, props, children }) = do
@@ -210,7 +210,7 @@ patch old new target = patch' old new target 0
       mNode <- childAt index parent
       maybe (pure unit) (void <<< flip removeChild parent) mNode
 
-    patch' (Just (Text prev)) (Just (Text next)) parent index =
+    patch' (Just (Text _ prev)) (Just (Text _ next)) parent index =
       when (prev /= next) do
         mNode <- childAt index parent
         maybe (pure unit) (void <<< setTextContent next) mNode
