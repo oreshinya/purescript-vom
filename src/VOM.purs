@@ -67,11 +67,11 @@ h :: forall e
   -> VNode e
 h tag props children = Element { tag, props, children: children' }
   where
-    setKey i (Text Nothing s) = Text (Just $ show i) s
+    setKey i (Text Nothing s) = Text (Just $ keyValue i) s
     setKey i (Element el) =
       case lookup "key" el.props of
         Just _ -> Element el
-        Nothing -> Element { tag: el.tag, children: el.children, props: ("key" := show i) : el.props }
+        Nothing -> Element { tag: el.tag, children: el.children, props: ("key" := keyValue i) : el.props }
     setKey _ vnode = vnode
 
     children' = mapWithIndex setKey children
@@ -80,6 +80,12 @@ h tag props children = Element { tag, props, children: children' }
 
 t :: forall e. String -> VNode e
 t = Text Nothing
+
+
+
+keyValue :: Int -> String
+keyValue i = "_vom_key_" <> show i
+
 
 
 attribute :: forall e. String -> String -> Tuple String (VProp e)
