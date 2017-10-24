@@ -28,15 +28,15 @@ import DOM.HTML.Types (htmlDocumentToDocument)
 import DOM.HTML.Window (document)
 import DOM.Node.Document (createTextNode, createElement, createElementNS)
 import DOM.Node.Element (removeAttribute, setAttribute)
-import DOM.Node.Node (childNodes, appendChild, removeChild, replaceChild, setTextContent)
-import DOM.Node.NodeList (item)
-import DOM.Node.Types (Node, Document, Element, textToNode, elementToNode)
-import Data.Array (union, (:), (!!), (..), length, mapWithIndex)
-import Data.Foldable (foldl, for_, traverse_)
+import DOM.Node.Node (appendChild, childNodes, insertBefore, removeChild, replaceChild, setTextContent)
+import DOM.Node.NodeList (length, item)
+import DOM.Node.Types (Document, Element, Node, NodeList, elementToNode, textToNode)
+import Data.Array (union, (:), (!!), mapWithIndex, snoc, singleton)
+import Data.Foldable (foldl, for_)
 import Data.Foreign (Foreign, toForeign)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..), fst, lookup, curry)
-import KeyBasedDiff (class HasKey)
+import KeyBasedDiff (class HasKey, Operation(..), operateDiff)
 import Unsafe.Coerce (unsafeCoerce)
 
 
@@ -128,10 +128,6 @@ doc = window >>= document >>= htmlDocumentToDocument >>> pure
 
 
 
-childAt :: forall e. Int -> Node -> Eff (dom :: DOM | e) (Maybe Node)
-childAt index node = childNodes node >>= item index
-
-
 svgNameSpace :: Maybe String
 svgNameSpace = Just "http://www.w3.org/2000/svg"
 
@@ -206,57 +202,85 @@ updateProps prevs nexts element =
 
 
 
+nodeListToArray
+  :: forall e
+   . NodeList
+  -> Int
+  -> Int
+  -> Array Node
+  -> Eff (dom :: DOM | e) (Array Node)
+nodeListToArray nodeList from to acm =
+  if from > to then
+    pure acm
+  else do
+    mNode <- item from nodeList
+    nodeListToArray nodeList (from + 1) to $ maybe acm (snoc acm) mNode
+
+
+
+patch'
+  :: forall e
+   . Array (VNode (dom :: DOM | e))
+  -> Array (VNode (dom :: DOM | e))
+  -> Array Node
+  -> Node
+  -> Eff (dom :: DOM | e) Unit
+patch' prevs nexts nodeArray parent = operateDiff prevs nexts effectBy
+  where
+    effectBy (Create vnode nextIdx) = do
+      node <- createNode vnode
+      insertChildAt node nextIdx
+
+    effectBy (Remove prevIdx) =
+      maybe (pure unit) (void <<< flip removeChild parent) $ nodeArray !! prevIdx
+
+    effectBy (Update prev next prevIdx) =
+      case prev, next of
+        Text _ prevText, Text _ nextText ->
+          when (changed prev next) $ maybe (pure unit) (void <<< setTextContent nextText) $ nodeArray !! prevIdx
+
+        Element { props: prevProps, children: prevChildren }, Element { props: nextProps, children: nextChildren } ->
+          flip (maybe $ pure unit) (nodeArray !! prevIdx) \node ->
+            if changed prev next then do
+              nextNode <- createNode next
+              void $ replaceChild nextNode node parent
+            else do
+              updateProps prevProps nextProps $ unsafeCoerce node
+              nodeChildren <- childNodes node
+              nodeChildrenLength <- length nodeChildren
+              nodeChildrenArray <- nodeListToArray nodeChildren 0 (nodeChildrenLength - 1) []
+              patch' prevChildren nextChildren nodeChildrenArray node
+
+        _, _ -> pure unit
+
+    effectBy (Move prev next prevIdx nextIdx) =
+      flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+        insertChildAt node nextIdx
+        effectBy (Update prev next prevIdx)
+
+    insertChildAt child idx = do
+      nodeList' <- childNodes parent
+      targetIdxNode <- item idx nodeList'
+      void $ case targetIdxNode of
+        Nothing -> appendChild child parent
+        Just node -> insertBefore child node parent
+
+
+
 patch
   :: forall e
    . Maybe (VNode (dom :: DOM | e))
   -> Maybe (VNode (dom :: DOM | e))
   -> Node
   -> Eff (dom :: DOM | e) Unit
-patch old new target = patch' old new target 0
+patch prev next parent = do
+  nodeChildren <- childNodes parent
+  nodeChildrenLength <- length nodeChildren
+  nodeChildrenArray <- nodeListToArray nodeChildren 0 (nodeChildrenLength - 1) []
+  patch' prevs nexts nodeChildrenArray parent
   where
-    patch' Nothing Nothing _ _ = pure unit
-
-    patch' Nothing (Just next) parent _ = do
-      node <- createNode next
-      void $ appendChild node parent
-
-    patch' (Just _) Nothing parent index = do
-      mNode <- childAt index parent
-      maybe (pure unit) (void <<< flip removeChild parent) mNode
-
-    patch' (Just (Text _ prev)) (Just (Text _ next)) parent index =
-      when (prev /= next) do
-        mNode <- childAt index parent
-        maybe (pure unit) (void <<< setTextContent next) mNode
-
-    patch' (Just prev) (Just next) parent index = do
-      mNode <- childAt index parent
-      case mNode of
-        Nothing -> pure unit
-        Just node ->
-          if (changed prev next) then do
-            nextNode <- createNode next
-            void $ replaceChild nextNode node parent
-          else do
-            case prev, next of
-              Element { props: prevProps }, Element { props: nextProps } ->
-                updateProps prevProps nextProps $ unsafeCoerce node
-              _, _ -> pure unit
-            startWalk prev next node
-
-    startWalk (Element prev) (Element next) parent = do
-      if (prevLength > nextLength)
-        then do
-          walk (0 .. (nextLength - 1))
-          walk ((prevLength - 1) .. nextLength)
-        else
-          walk (0 .. (nextLength - 1))
-      where
-        walk = traverse_ (\i -> patch' (prev.children !! i) (next.children !! i) parent i)
-        prevLength = length prev.children
-        nextLength = length next.children
-
-    startWalk _ _ _ = pure unit
+    prevs = maybe [] singleton prev
+    nexts = maybe [] singleton next
 
 
 
