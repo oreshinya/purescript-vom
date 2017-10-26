@@ -250,7 +250,7 @@ patch' prevs nexts children parent = operateDiff prevs nexts effectBy
     effectBy (Update prev next prevIdx) =
       if changed prev next then
         case prev, next of
-          Text _ prevText, Text _ nextText ->
+          Text _ _, Text _ nextText ->
             maybe (pure unit) (void <<< setTextContent nextText) $ children !! prevIdx
 
           _, _ ->
