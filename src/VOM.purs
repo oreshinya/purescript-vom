@@ -233,17 +233,17 @@ patch'
   -> Array Node
   -> Node
   -> Eff (dom :: DOM | e) Unit
-patch' prevs nexts nodeArray parent = operateDiff prevs nexts effectBy
+patch' prevs nexts children parent = operateDiff prevs nexts effectBy
   where
     effectBy (Create vnode nextIdx) = do
       node <- createNode vnode
       insertChildAt node nextIdx
 
     effectBy (Remove prevIdx) =
-      maybe (pure unit) (void <<< flip removeChild parent) $ nodeArray !! prevIdx
+      maybe (pure unit) (void <<< flip removeChild parent) $ children !! prevIdx
 
     effectBy (Move prev next prevIdx nextIdx) =
-      flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+      flip (maybe $ pure unit) (children !! prevIdx) \node -> do
         insertChildAt node nextIdx
         effectBy (Update prev next prevIdx)
 
@@ -251,19 +251,19 @@ patch' prevs nexts nodeArray parent = operateDiff prevs nexts effectBy
       if changed prev next then
         case prev, next of
           Text _ prevText, Text _ nextText ->
-            maybe (pure unit) (void <<< setTextContent nextText) $ nodeArray !! prevIdx
+            maybe (pure unit) (void <<< setTextContent nextText) $ children !! prevIdx
 
           _, _ ->
-            flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+            flip (maybe $ pure unit) (children !! prevIdx) \node -> do
               nextNode <- createNode next
               void $ replaceChild nextNode node parent
       else
         case prev, next of
           Element pEl, Element nEl ->
-            flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+            flip (maybe $ pure unit) (children !! prevIdx) \node -> do
               updateProps pEl.props nEl.props $ unsafeCoerce node
-              realChildren <- memoizedChildNodes node
-              patch' pEl.children nEl.children realChildren node
+              children' <- memoizedChildNodes node
+              patch' pEl.children nEl.children children' node
 
           _, _ -> pure unit
 
@@ -283,8 +283,8 @@ patch
   -> Node
   -> Eff (dom :: DOM | e) Unit
 patch prev next parent = do
-  realChildren <- memoizedChildNodes parent
-  patch' prevs nexts realChildren parent
+  children <- memoizedChildNodes parent
+  patch' prevs nexts children parent
   where
     prevs = maybe [] singleton prev
     nexts = maybe [] singleton next
