@@ -218,6 +218,14 @@ nodeListToArray nodeList from to acm =
 
 
 
+memoizedChildNodes :: forall e. Node -> Eff (dom :: DOM | e) (Array Node)
+memoizedChildNodes node = do
+  nodeList <- childNodes node
+  l <- length nodeList
+  nodeListToArray nodeList 0 (l - 1) []
+
+
+
 patch'
   :: forall e
    . Array (VNode (dom :: DOM | e))
@@ -234,29 +242,30 @@ patch' prevs nexts nodeArray parent = operateDiff prevs nexts effectBy
     effectBy (Remove prevIdx) =
       maybe (pure unit) (void <<< flip removeChild parent) $ nodeArray !! prevIdx
 
-    effectBy (Update prev next prevIdx) =
-      case prev, next of
-        Text _ prevText, Text _ nextText ->
-          when (changed prev next) $ maybe (pure unit) (void <<< setTextContent nextText) $ nodeArray !! prevIdx
-
-        Element { props: prevProps, children: prevChildren }, Element { props: nextProps, children: nextChildren } ->
-          flip (maybe $ pure unit) (nodeArray !! prevIdx) \node ->
-            if changed prev next then do
-              nextNode <- createNode next
-              void $ replaceChild nextNode node parent
-            else do
-              updateProps prevProps nextProps $ unsafeCoerce node
-              nodeChildren <- childNodes node
-              nodeChildrenLength <- length nodeChildren
-              nodeChildrenArray <- nodeListToArray nodeChildren 0 (nodeChildrenLength - 1) []
-              patch' prevChildren nextChildren nodeChildrenArray node
-
-        _, _ -> pure unit
-
     effectBy (Move prev next prevIdx nextIdx) =
       flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
         insertChildAt node nextIdx
         effectBy (Update prev next prevIdx)
+
+    effectBy (Update prev next prevIdx) =
+      if changed prev next then
+        case prev, next of
+          Text _ prevText, Text _ nextText ->
+            maybe (pure unit) (void <<< setTextContent nextText) $ nodeArray !! prevIdx
+
+          _, _ ->
+            flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+              nextNode <- createNode next
+              void $ replaceChild nextNode node parent
+      else
+        case prev, next of
+          Element pEl, Element nEl ->
+            flip (maybe $ pure unit) (nodeArray !! prevIdx) \node -> do
+              updateProps pEl.props nEl.props $ unsafeCoerce node
+              realChildren <- memoizedChildNodes node
+              patch' pEl.children nEl.children realChildren node
+
+          _, _ -> pure unit
 
     insertChildAt child idx = do
       nodeList' <- childNodes parent
@@ -274,10 +283,8 @@ patch
   -> Node
   -> Eff (dom :: DOM | e) Unit
 patch prev next parent = do
-  nodeChildren <- childNodes parent
-  nodeChildrenLength <- length nodeChildren
-  nodeChildrenArray <- nodeListToArray nodeChildren 0 (nodeChildrenLength - 1) []
-  patch' prevs nexts nodeChildrenArray parent
+  realChildren <- memoizedChildNodes parent
+  patch' prevs nexts realChildren parent
   where
     prevs = maybe [] singleton prev
     nexts = maybe [] singleton next
