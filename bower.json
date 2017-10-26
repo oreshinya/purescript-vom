@@ -37,6 +37,7 @@
     "purescript-key-based-diff": "^0.2.0"
   },
   "devDependencies": {
-    "purescript-psci-support": "^3.0.0"
+    "purescript-psci-support": "^3.0.0",
+    "purescript-assert": "^3.0.0"
   }
 }

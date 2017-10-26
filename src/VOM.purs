@@ -1,6 +1,6 @@
 module VOM
   ( VProp
-  , VNode
+  , VNode(..)
   , h
   , t
   , attribute

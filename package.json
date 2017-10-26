@@ -7,10 +7,13 @@
     "pulp:build": "pulp build",
     "pulp:psci": "pulp psci",
     "pulp:version": "pulp version",
-    "pulp:publish": "pulp publish"
+    "pulp:publish": "pulp publish",
+    "pulp:test": "pulp test"
   },
   "devDependencies": {
     "bower": "^1.8.0",
+    "jsdom": "^11.3.0",
+    "jsdom-global": "^3.0.2",
     "pulp": "^11.0.0",
     "purescript": "0.11.6"
   }
