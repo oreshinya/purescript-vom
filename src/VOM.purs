@@ -145,7 +145,7 @@ setProp
    . Element
   -> Tuple String (VProp (dom :: DOM | e))
   -> Eff (dom :: DOM | e) Unit
-setProp _ (Tuple "key" v) = pure unit
+setProp _ (Tuple "key" _) = pure unit
 setProp el (Tuple k v) =
   case v of
     Attribute val -> do
