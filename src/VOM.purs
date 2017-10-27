@@ -244,6 +244,7 @@ patch' prevs nexts children parent = operateDiff prevs nexts effectBy
 
     effectBy (Move prev next prevIdx nextIdx) =
       flip (maybe $ pure unit) (children !! prevIdx) \node -> do
+        void $ removeChild node parent
         insertChildAt node nextIdx
         effectBy (Update prev next prevIdx)
 
