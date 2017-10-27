@@ -39,15 +39,7 @@ assertDiffAlgorithmForText = do
   assertFor shiftedReversed
   assertFor removedReversed
   assertFor poppedReversed
-  assertFor
-    [ t "text 1"
-    , t "text 2"
-    , t "text 5"
-    , t "text 100"
-    , t "text 3"
-    , t "text 99"
-    , t "text 4"
-    ]
+  assertFor chaotic
   where
     base =
       [ t "text 1"
@@ -167,6 +159,15 @@ assertDiffAlgorithmForText = do
       , t "text 2"
       ]
 
+    chaotic =
+      [ t "text 1"
+      , t "text 2"
+      , t "text 5"
+      , t "text 100"
+      , t "text 3"
+      , t "text 99"
+      , t "text 4"
+      ]
     assertFor vnodes = do
       clearBody
       mBody <- window >>= document >>= body
