@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "purescript-dom": "^4.10.0",
-    "purescript-key-based-diff": "^0.2.0"
+    "purescript-key-based-diff": "^0.3.0"
   },
   "devDependencies": {
     "purescript-psci-support": "^3.0.0",
