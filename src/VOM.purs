@@ -17,7 +17,8 @@ module VOM
 import Prelude
 
 import Control.Monad.Eff (Eff)
-import Control.Monad.Eff.Exception (EXCEPTION, catchException)
+import Control.Monad.Rec.Class (Step(..), tailRecM2)
+import Control.Safely as Safe
 import DOM (DOM)
 import DOM.Event.Event (target)
 import DOM.Event.EventTarget (eventListener)
@@ -54,10 +55,9 @@ data VNode e
   | Text (Maybe String) String
 
 
+foreign import setForeign :: forall e. String -> Foreign -> Element -> Eff (dom :: DOM | e) Unit
 
-foreign import setForeign :: forall e. String -> Foreign -> Element -> Eff (dom :: DOM, exception :: EXCEPTION | e) Unit
-
-foreign import removeForeign :: forall e. String -> Element -> Eff (dom :: DOM, exception :: EXCEPTION | e) Unit
+foreign import removeForeign :: forall e. String -> Element -> Eff (dom :: DOM | e) Unit
 
 
 
@@ -149,17 +149,17 @@ setProp _ (Tuple "key" _) = pure unit
 setProp el (Tuple k v) =
   case v of
     Attribute val -> do
-      catchException (const $ pure unit) $ setForeign k (toForeign val) el
+      setForeign k (toForeign val) el
       setAttribute k val el
     Handler val ->
-      catchException (const $ pure unit) $ setForeign k (toForeign $ eventListener val) el
+      setForeign k (toForeign $ eventListener val) el
 
 
 
 removeProp :: forall e. Element -> String -> Eff (dom :: DOM | e) Unit
 removeProp _ "key" = pure unit
 removeProp el k = do
-  catchException (const $ pure unit) $ removeForeign k el
+  removeForeign k el
   removeAttribute k el
 
 
@@ -176,10 +176,10 @@ createNode (Element { tag, props, children }) = do
       doc >>= createElement tag
   for_ props $ setProp el
   let node = elementToNode el
-  for_ children
+  Safe.for_ children
     \vc -> do
       child <- createNode vc
-      appendChild child node
+      void $ appendChild child node
   pure node
 
 
@@ -209,12 +209,13 @@ nodeListToArray
   -> Int
   -> Array Node
   -> Eff (dom :: DOM | e) (Array Node)
-nodeListToArray nodeList from to acm =
-  if from > to then
-    pure acm
-  else do
-    mNode <- item from nodeList
-    nodeListToArray nodeList (from + 1) to $ maybe acm (snoc acm) mNode
+nodeListToArray nodeList from to accum = tailRecM2 go { nodeList, from, to } accum
+  where
+    go acc acc2
+      | acc.from > acc.to = pure $ Done acc2
+      | otherwise = do
+          mNode <- item acc.from acc.nodeList
+          pure $ Loop { a: acc { from = acc.from + 1 }, b: maybe acc2 (snoc acc2) mNode }
 
 
 
