@@ -4,13 +4,11 @@ module VOM
   , h
   , t
   , attribute
-  , style
   , handler
   , stringTo
   , noneTo
   , patch
   , (:=)
-  , (:|)
   , (~>)
   ) where
 
@@ -33,7 +31,7 @@ import DOM.Node.Node (appendChild, childNodes, insertBefore, removeChild, replac
 import DOM.Node.NodeList (length, item)
 import DOM.Node.Types (Document, Element, Node, NodeList, elementToNode, textToNode)
 import Data.Array (union, (:), (!!), mapWithIndex, snoc, singleton)
-import Data.Foldable (foldl, for_)
+import Data.Foldable (for_)
 import Data.Foreign (Foreign, toForeign)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
 import Data.Tuple (Tuple(..), fst, lookup, curry)
@@ -93,16 +91,6 @@ attribute :: forall e. String -> String -> Tuple String (VProp e)
 attribute key value' = Tuple key (Attribute value')
 
 infixr 1 attribute as :=
-
-
-
-style :: forall e. String -> Array (Tuple String String) -> Tuple String (VProp e)
-style key styles = attribute key value'
-  where
-    joint acc (Tuple k v) = acc <> k <> ":" <> v <> ";"
-    value' = foldl joint "" styles
-
-infixr 1 style as :|
 
 
 
