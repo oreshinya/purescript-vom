@@ -2,8 +2,9 @@
   "private": true,
   "name": "purescript-vom",
   "scripts": {
+    "postinstall": "bower install",
     "clean": "rm -rf output",
-    "bower:install": "bower install",
+    "pulp:login": "pulp login",
     "pulp:build": "pulp build",
     "pulp:psci": "pulp psci",
     "pulp:version": "pulp version",
@@ -11,10 +12,10 @@
     "pulp:test": "pulp test"
   },
   "devDependencies": {
-    "bower": "^1.8.0",
+    "bower": "^1.8.4",
     "jsdom": "^11.3.0",
     "jsdom-global": "^3.0.2",
-    "pulp": "^11.0.0",
-    "purescript": "0.11.6"
+    "pulp": "^12.0.1",
+    "purescript": "0.11.7"
   }
 }
