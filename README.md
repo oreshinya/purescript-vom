@@ -2,6 +2,8 @@
 
 [![Latest release](http://img.shields.io/github/release/oreshinya/purescript-vom.svg)](https://github.com/oreshinya/purescript-vom/releases)
 
+**[OBSOLETED] No longer maintenance.**
+
 PureScript virtual dom implementation.
 See [example](https://github.com/oreshinya/purescript-cherry/blob/master/example/Main.purs).
 
